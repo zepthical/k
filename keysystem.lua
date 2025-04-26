@@ -1,7 +1,6 @@
 local discordInvite = "https://discord.gg/hxMDEsvEEh" -- Replace with your Discord invite
-local keyURL = "https://raw.githubusercontent.com/Nakhun12310/CookieHub/refs/heads/main/key.txt" -- Keys @therealnakhun
+local keyURL = "https://raw.githubusercontent.com/zepthical/k/refs/heads/main/Keys.txt" -- Keys
 
--- SERVICES
 local player = game.Players.LocalPlayer
 local tweenService = game:GetService("TweenService")
 local uis = game:GetService("UserInputService")
@@ -27,7 +26,6 @@ game.StarterGui:SetCore(
     }
 )
 
--- Fetch keys from GitHub
 local function fetchKeys()
     local success, response = pcall(function()
         return HttpService:GetAsync(keyURL)
@@ -39,14 +37,14 @@ local function fetchKeys()
         end
         return keys
     else
-        warn("Failed to fetch keys!")
+        warn("Failed to fetch keys.")
         return nil
     end
 end
 
 local validKeys = fetchKeys() or {}
 
--- GUI SETUP
+-- GUI
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "Cookie Hub KeySystem"
 gui.ResetOnSpawn = false
@@ -66,7 +64,7 @@ frame.Name = "KeyFrame"
 local aspect = Instance.new("UIAspectRatioConstraint", frame)
 aspect.AspectRatio = 2
 
--- Tween in
+
 tweenService:Create(
     frame,
     TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
@@ -75,7 +73,7 @@ tweenService:Create(
     }
 ):Play()
 
--- Drag Support
+-- Drag
 local dragging, dragInput, dragStart, startPos
 frame.InputBegan:Connect(
     function(input)
@@ -105,7 +103,6 @@ uis.InputChanged:Connect(
     end
 )
 
--- Label
 local label = Instance.new("TextLabel", frame)
 label.Text = "Polleser Hub | Key System"
 label.Size = UDim2.new(1, 0, 0.15, 0)
@@ -116,7 +113,7 @@ label.Font = Enum.Font.GothamSemibold
 label.TextScaled = true
 label.BorderSizePixel = 0
 
--- TextBox
+-- Input
 local input = Instance.new("TextBox", frame)
 input.PlaceholderText = "Enter your access key..."
 input.Size = UDim2.new(0.9, 0, 0.2, 0)
@@ -129,7 +126,7 @@ input.Font = Enum.Font.Gotham
 input.TextScaled = true
 input.BorderSizePixel = 0
 
--- Button
+-- Submit
 local button = Instance.new("TextButton", frame)
 button.Text = "Submit"
 button.Size = UDim2.new(0.9, 0, 0.18, 0)
@@ -160,7 +157,7 @@ button.MouseButton1Click:Connect(
             gui:Destroy()
             blur:Destroy()
 
-            -- @threalnakhun script here
+            -- The script right here
 
         else
             label.Text = "Invalid Key!"
