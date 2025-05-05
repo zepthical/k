@@ -1,43 +1,98 @@
 import discord
 import requests
-import random
+from base64 import b64decode
+from base64 import b64encode
+import os
+import time
 
-TOKEN = "MTM2ODgzMzEwMjkzNTQ5MDU3Mw.GeWwnx.lcoAjPuyaMsACAYGNVVLFDuXZ7FgAaJoll4Fhk"  # Replace with your actual bot token
-GITHUB_KEYS_URL = "https://raw.githubusercontent.com/zepthical/k/refs/heads/main/Keys.txt"
+# Fetch the Discord bot token from environment variables
+DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+REPO_OWNER = "zepthical"
+REPO_NAME = "k"
+FILE_PATH = "Keys.txt"
+BRANCH = "main"
 
+# Initialize Discord bot with intents
 intents = discord.Intents.default()
-intents.message_content = True  # Needed to receive message content
+intents.message_content = True
 bot = discord.Client(intents=intents)
 
+# Store the last request time for each user
+user_cooldowns = {}
+
+COOLDOWN_PERIOD = 86400  # 1 day in seconds (24 hours * 60 minutes * 60 seconds)
+
+# Function to get keys from the GitHub repository
+def get_keys_file():
+    url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/{FILE_PATH}?ref={BRANCH}"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    res = requests.get(url, headers=headers)
+    if res.status_code == 200:
+        data = res.json()
+        content = b64encode(res.content).decode("utf-8")
+        return data["sha"], b64decode(data["content"]).decode("utf-8").splitlines()
+    else:
+        return None, []
+
+# Function to update the keys file on GitHub
+def update_keys_file(new_keys, sha):
+    url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/{FILE_PATH}"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    new_content = "\n".join(new_keys)
+    data = {
+        "message": "Remove used key",
+        "content": b64encode(new_content.encode("utf-8")).decode("utf-8"),
+        "branch": BRANCH,
+        "sha": sha
+    }
+    res = requests.put(url, json=data, headers=headers)
+    return res.status_code == 200 or res.status_code == 201
+
+# Discord bot event when the bot is ready
 @bot.event
 async def on_ready():
     print(f"✅ Logged in as {bot.user}")
 
+# Discord bot event when a message is received
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
 
     if message.content.lower().startswith("!getkey"):
-        # Fetch keys from GitHub
-        response = requests.get(GITHUB_KEYS_URL)
-        if response.status_code != 200:
-            await message.channel.send("❌ Failed to fetch keys.")
-            return
-
-        keys = response.text.strip().split("\n")
+        current_time = time.time()
+        
+        # Check if the user has a cooldown
+        if message.author.id in user_cooldowns:
+            last_request_time = user_cooldowns[message.author.id]
+            time_elapsed = current_time - last_request_time
+            
+            # If less than the cooldown period has passed, deny the request
+            if time_elapsed < COOLDOWN_PERIOD:
+                remaining_time = COOLDOWN_PERIOD - time_elapsed
+                await message.channel.send(f"❌ You must wait {int(remaining_time // 3600)} hours and {int((remaining_time % 3600) // 60)} minutes before requesting another key.")
+                return
+        
+        sha, keys = get_keys_file()
         if not keys:
             await message.channel.send("❌ No keys found.")
             return
 
-        # Pick a key (you could remove it later to avoid reuse)
-        key = random.choice(keys)
+        key = keys[0]
+        new_keys = keys[1:]
 
-        # Send the key via DM (or channel)
-        try:
-            await message.author.send(f"🔑 Your key: `{key}`")
-            await message.channel.send("📬 Check your DMs!")
-        except discord.Forbidden:
-            await message.channel.send("❌ I can't DM you. Please allow DMs from server members.")
+        if update_keys_file(new_keys, sha):
+            try:
+                await message.author.send(f"🔑 Your key: `{key}`")
+                await message.channel.send("📬 Key sent via DM!")
+                
+                # Update the cooldown for the user
+                user_cooldowns[message.author.id] = current_time
+            except discord.Forbidden:
+                await message.channel.send("❌ I can't DM you. Please allow DMs.")
+        else:
+            await message.channel.send("❌ Failed to update the key file on GitHub.")
 
-bot.run(TOKEN)
+# Run the Discord bot
+bot.run(DISCORD_BOT_TOKEN)
