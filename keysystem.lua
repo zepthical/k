@@ -1,10 +1,19 @@
 local url = "https://raw.githubusercontent.com/zepthical/k/refs/heads/main/Keys.txt"
-local keys = game:HttpGet(url)
+local content = game:HttpGet(url)
+local keys = string.split(content, "\n") -- split each line into a table
 
-_G.keys = nil
+_G.key = "your-correct-key"
 
-if _G.keys == keys then
-    print("Success")
+local valid = false
+for _, key in ipairs(keys) do
+    if _G.key == key then
+        valid = true
+        break
+    end
+end
+
+if valid then
+    print("success")
 else
-    print("Failed")
+    print("invalid key")
 end
