@@ -2,7 +2,7 @@ local url = "https://raw.githubusercontent.com/zepthical/k/refs/heads/main/Keys.
 local content = game:HttpGet(url)
 local keys = string.split(content, "\n") -- split each line into a table
 
-_G.key = "your-correct-key"
+_G.key = "K1Lm-NO2P-Q3Rs"
 
 local valid = false
 for _, key in ipairs(keys) do
