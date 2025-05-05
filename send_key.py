@@ -3,17 +3,15 @@ import requests
 from base64 import b64decode
 from base64 import b64encode
 import os
-import time
+import time  # To handle timestamps
 
-# Fetch the Discord bot token from environment variables
-DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+DISCORD_BOT_TOKEN = ""
+GITHUB_TOKEN = "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"
 REPO_OWNER = "zepthical"
 REPO_NAME = "k"
 FILE_PATH = "Keys.txt"
 BRANCH = "main"
 
-# Initialize Discord bot with intents
 intents = discord.Intents.default()
 intents.message_content = True
 bot = discord.Client(intents=intents)
@@ -23,7 +21,6 @@ user_cooldowns = {}
 
 COOLDOWN_PERIOD = 86400  # 1 day in seconds (24 hours * 60 minutes * 60 seconds)
 
-# Function to get keys from the GitHub repository
 def get_keys_file():
     url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/{FILE_PATH}?ref={BRANCH}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
@@ -35,7 +32,6 @@ def get_keys_file():
     else:
         return None, []
 
-# Function to update the keys file on GitHub
 def update_keys_file(new_keys, sha):
     url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/{FILE_PATH}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
@@ -49,12 +45,10 @@ def update_keys_file(new_keys, sha):
     res = requests.put(url, json=data, headers=headers)
     return res.status_code == 200 or res.status_code == 201
 
-# Discord bot event when the bot is ready
 @bot.event
 async def on_ready():
     print(f"✅ Logged in as {bot.user}")
 
-# Discord bot event when a message is received
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
@@ -94,5 +88,5 @@ async def on_message(message):
         else:
             await message.channel.send("❌ Failed to update the key file on GitHub.")
 
-# Run the Discord bot
 bot.run(DISCORD_BOT_TOKEN)
+
