@@ -5,9 +5,9 @@ getgenv().settings = {
 }
  
 local AuthGuard = loadstring(game:HttpGet("https://raw.githubusercontent.com/zepthical/k/refs/heads/main/authguard.lua"))(
-	"PRIVATE_KEY",
+	"e0b1afff35f64010884f40ab957eab46",
 	{
-		serviceId = "SERVICE_ID",
+		serviceId = "80766679c8444eabbc0aae2484eefa76",
 	}
 )
 -- Script below
