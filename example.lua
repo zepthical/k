@@ -1,7 +1,7 @@
 getgenv().settings = {
     Script_Title = "Title", -- Title shown in the UI
     KeyExpiration = 24,            -- Key expiration time in hours
-    InviteCode = "GhcXWRkc"
+    InviteCode = "GreJFg5qEY"
 }
  
 local AuthGuard = loadstring(game:HttpGet("https://raw.githubusercontent.com/zepthical/k/refs/heads/main/authguard.lua"))(
